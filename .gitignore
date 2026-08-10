@@ -1,0 +1,26 @@
+# Internal rules & strategy (deliberately not public)
+AGENTS.md
+
+# Local AI tooling
+.opencode/
+opencode.json
+
+# Build output
+target/
+**/target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
