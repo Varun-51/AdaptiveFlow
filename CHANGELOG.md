@@ -35,5 +35,6 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Quality gates: JaCoCo (90 % line / 80 % branch), Checkstyle, SpotBugs
   (max effort), Maven Wrapper.
 - JMH benchmarks: linear chain and parallel fan-in (end-to-end throughput).
-- Maven Central wiring: `distributionManagement`, GPG-signed `release`
-  profile with sources + javadoc jars and Nexus staging.
+- Maven Central wiring: Central Portal publishing
+  (`central-publishing-maven-plugin`), GPG-signed `release` profile with
+  sources + javadoc jars.
