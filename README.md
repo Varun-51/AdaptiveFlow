@@ -21,6 +21,24 @@ carrier threads.
 
 ## Quick start
 
+### Install
+
+```xml
+<dependency>
+    <groupId>io.github.varun-51</groupId>
+    <artifactId>adaptiveflow-core</artifactId>
+    <version>1.0.2</version>
+</dependency>
+```
+
+Gradle:
+
+```groovy
+implementation 'io.github.varun-51:adaptiveflow-core:1.0.2'
+```
+
+### Use
+
 ```java
 import io.github.varun51.adaptiveflow.WorkflowBuilder;
 import io.github.varun51.adaptiveflow.WorkflowResult;
@@ -136,7 +154,7 @@ execution, and result collection — virtual threads and all.
 ./mvnw -pl adaptiveflow-core verify
 ```
 
-Runs the full quality gate: 51 unit tests (concurrency, retry, validation),
+Runs the full quality gate: 61 unit tests (concurrency, retry, validation),
 JaCoCo line/branch coverage thresholds (90 % / 80 %), a custom Checkstyle
 ruleset, and SpotBugs at max effort.
 

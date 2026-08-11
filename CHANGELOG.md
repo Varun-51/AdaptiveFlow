@@ -3,6 +3,20 @@
 All notable changes to AdaptiveFlow are documented here. This project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-08-11
+
+### Fixed
+
+- Retry backoff was one doubling too long: the engine passed the 1-based
+  attempt counter into the 0-based delay API, so the first retry waited
+  twice the configured initial delay and every step was shifted. Retry
+  waits now match the documented schedule (initial, 2x, 4x, ...).
+- Cycle errors now name only the tasks actually stuck in the cycle instead
+  of dumping the whole remaining-dependency map.
+- Group-level `retry(...)` no longer clobbers a parallel member that
+  declared its own retry policy; the per-member policy wins.
+- `WorkflowResult` and `ExecutionPlan` are `final`.
+
 ## [1.0.1] - 2026-08-11
 
 ### Fixed
