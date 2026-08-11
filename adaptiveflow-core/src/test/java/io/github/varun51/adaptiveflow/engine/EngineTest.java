@@ -10,10 +10,11 @@ import io.github.varun51.adaptiveflow.TaskStatus;
 import io.github.varun51.adaptiveflow.Workflow;
 import io.github.varun51.adaptiveflow.WorkflowBuilder;
 import io.github.varun51.adaptiveflow.WorkflowResult;
-import java.time.Duration;
+import io.github.varun51.adaptiveflow.exception.AdaptiveFlowException;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.Test;
 
@@ -94,5 +95,16 @@ class ExecutionEngineTest {
         ExecutorService executor = VirtualThreadExecutor.newVirtualThreadPerTaskExecutor();
         assertFalse(executor.isShutdown());
         executor.shutdown();
+    }
+
+    @Test
+    void rejectingExecutorFailsFastInsteadOfHanging() {
+        Workflow workflow = WorkflowBuilder.builder("rejected")
+                .task("a", ctx -> 1)
+                .build();
+        assertThrows(AdaptiveFlowException.class,
+                () -> new ExecutionEngine().run(workflow, command -> {
+                    throw new RejectedExecutionException("executor is shut down");
+                }));
     }
 }

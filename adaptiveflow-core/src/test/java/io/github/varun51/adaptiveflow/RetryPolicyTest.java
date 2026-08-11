@@ -102,6 +102,24 @@ class RetryPolicyTest {
             assertEquals(Duration.ZERO, none.delayBeforeJittered(0));
         }
     }
+
+    @Test
+    void exponentialDelayNeverOverflows() {
+        RetryPolicy capped = RetryPolicy.exponentialBackoff(
+                63, Duration.ofMillis(8), Duration.ofMillis(100));
+        for (int attempt = 0; attempt < 63; attempt++) {
+            long ms = capped.delayBefore(attempt).toMillis();
+            assertTrue(ms > 0 && ms <= 100, "capped delay out of range: " + ms);
+        }
+        RetryPolicy uncapped = RetryPolicy.exponentialBackoff(63, Duration.ofSeconds(1));
+        assertTrue(uncapped.delayBefore(62).toMillis() > 0, "uncapped delay must stay positive");
+    }
+
+    @Test
+    void rejectsMaxDelaySmallerThanInitialDelay() {
+        assertThrows(IllegalArgumentException.class, () -> RetryPolicy.exponentialBackoff(
+                3, Duration.ofSeconds(2), Duration.ofSeconds(1)));
+    }
 }
 
 class TaskResultTest {

@@ -71,11 +71,6 @@
             <property name="allowNoEmptyLineBetweenFields" value="true"/>
         </module>
 
-        <!-- Spacing that keeps the codebase uniform. -->
-        <module name="EmptyLineSeparator">
-            <property name="allowNoEmptyLineBetweenFields" value="true"/>
-        </module>
-
         <!-- Avoid the obvious pitfalls. -->
         <module name="EmptyBlock"/>
         <module name="EqualsHashCode"/>

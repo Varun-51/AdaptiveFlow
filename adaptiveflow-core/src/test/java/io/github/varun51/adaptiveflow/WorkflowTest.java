@@ -2,12 +2,12 @@ package io.github.varun51.adaptiveflow;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -206,5 +206,31 @@ class WorkflowTest {
                 .task("b", ctx -> List.of(ctx.snapshot()))
                 .execute();
         assertTrue(result.isSuccess());
+    }
+
+    @Test
+    void planIdsFollowDependencyOrder() {
+        Workflow workflow = WorkflowBuilder.builder("order")
+                .task("a", ctx -> 1)
+                .task("b", ctx -> 2)
+                .parallel(WorkflowBuilder.TaskRef.of("c", ctx -> 3))
+                .task("d", ctx -> 4)
+                .build();
+        List<String> ids = workflow.plan().ids();
+        assertEquals(0, ids.indexOf("a"));
+        assertEquals(1, ids.indexOf("b"));
+        assertTrue(ids.indexOf("c") < ids.indexOf("d"));
+    }
+
+    @Test
+    void emptyParallelIsRejected() {
+        assertThrows(IllegalArgumentException.class,
+                () -> WorkflowBuilder.builder("none").parallel());
+    }
+
+    @Test
+    void blankTaskIdIsRejected() {
+        assertThrows(ValidationException.class,
+                () -> WorkflowBuilder.builder("blank").task("  ", ctx -> 1));
     }
 }

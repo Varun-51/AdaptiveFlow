@@ -1,9 +1,6 @@
-package io.github.varun51.adaptiveflow.internal;
+package io.github.varun51.adaptiveflow;
 
 import java.util.Set;
-
-import io.github.varun51.adaptiveflow.RetryPolicy;
-import io.github.varun51.adaptiveflow.Task;
 
 /**
  * Immutable per-task definition: logic, prerequisite ids, retry policy.

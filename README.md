@@ -124,8 +124,8 @@ Measured on this machine (Java 21, in-process, 3 iterations of 1 s):
 
 | Benchmark            | Score     |
 |----------------------|-----------|
-| 8-task linear chain  | ~5.3k workflows/s |
-| 15-task fan-in DAG   | ~6.5k workflows/s |
+| 5-task linear chain  | ~5.3k workflows/s |
+| 10-task fan-in DAG   | ~6.5k workflows/s |
 
 Operations are end-to-end: workflow construction, validation, planning,
 execution, and result collection — virtual threads and all.

@@ -51,6 +51,9 @@ public final class RetryPolicy {
                                                  Duration maxDelay) {
         Duration initial = requireValidDelay(initialDelay);
         Duration cap = maxDelay == null ? null : requireValidDelay(maxDelay);
+        if (cap != null && cap.compareTo(initial) < 0) {
+            throw new IllegalArgumentException("maxDelay must not be smaller than initialDelay");
+        }
         return new RetryPolicy(requireAttempts(maxAttempts), Backoff.EXPONENTIAL, initial, cap);
     }
 
@@ -78,8 +81,13 @@ public final class RetryPolicy {
     }
 
     private Duration delayForExponential(int attempt) {
-        long millis = initialDelay.toMillis() * (1L << attempt);
-        if (maxDelay != null && millis > maxDelay.toMillis()) {
+        long millis;
+        try {
+            millis = Math.multiplyExact(initialDelay.toMillis(), 1L << Math.min(attempt, 62));
+        } catch (ArithmeticException overflow) {
+            millis = Long.MAX_VALUE;
+        }
+        if (maxDelay != null && millis >= maxDelay.toMillis()) {
             return maxDelay;
         }
         return Duration.ofMillis(millis);

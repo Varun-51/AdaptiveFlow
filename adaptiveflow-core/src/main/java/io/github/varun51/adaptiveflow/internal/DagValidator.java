@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import io.github.varun51.adaptiveflow.TaskSpec;
 import io.github.varun51.adaptiveflow.exception.ValidationException;
 
 /**

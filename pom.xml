@@ -6,7 +6,7 @@
 
     <groupId>io.github.varun-51</groupId>
     <artifactId>adaptiveflow</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>pom</packaging>
 
     <name>AdaptiveFlow</name>
@@ -35,8 +35,8 @@
     </organization>
 
     <scm>
-        <connection>scm:git:git://github.com/Varun-51/AdaptiveFlow.git</connection>
-        <developerConnection>scm:git:git@github.com:Varun-51/AdaptiveFlow.git</developerConnection>
+        <connection>scm:git:https://github.com/Varun-51/AdaptiveFlow.git</connection>
+        <developerConnection>scm:git:https://github.com/Varun-51/AdaptiveFlow.git</developerConnection>
         <url>https://github.com/Varun-51/AdaptiveFlow</url>
         <tag>HEAD</tag>
     </scm>

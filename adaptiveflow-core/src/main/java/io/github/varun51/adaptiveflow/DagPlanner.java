@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import io.github.varun51.adaptiveflow.internal.DagValidator;
-import io.github.varun51.adaptiveflow.internal.TaskSpec;
 import io.github.varun51.adaptiveflow.internal.TopologicalSort;
 
 /**
@@ -33,8 +32,8 @@ public final class DagPlanner {
 
         DagValidator.validate(specs, dependencies);
 
-        TopologicalSort.sort(byId.keySet(), dependencies);
+        List<String> order = TopologicalSort.sort(byId.keySet(), dependencies);
 
-        return new ExecutionPlan(name, byId);
+        return new ExecutionPlan(name, byId, order);
     }
 }

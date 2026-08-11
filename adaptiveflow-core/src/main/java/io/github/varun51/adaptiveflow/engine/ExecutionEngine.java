@@ -9,17 +9,18 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.github.varun51.adaptiveflow.RetryPolicy;
 import io.github.varun51.adaptiveflow.Task;
 import io.github.varun51.adaptiveflow.TaskResult;
+import io.github.varun51.adaptiveflow.TaskSpec;
 import io.github.varun51.adaptiveflow.TaskStatus;
 import io.github.varun51.adaptiveflow.Workflow;
 import io.github.varun51.adaptiveflow.WorkflowResult;
 import io.github.varun51.adaptiveflow.exception.AdaptiveFlowException;
-import io.github.varun51.adaptiveflow.internal.TaskSpec;
 
 /**
  * Runs a {@link Workflow}: a task becomes runnable when all its dependencies
@@ -86,7 +87,13 @@ public final class ExecutionEngine {
             results.put(spec.id(), skipped(spec.id()));
             return;
         }
-        executor.execute(() -> runTask(spec, context, results, gates, firstFailure));
+        try {
+            executor.execute(() -> runTask(spec, context, results, gates, firstFailure));
+        } catch (RejectedExecutionException e) {
+            if (gates.get(spec.id()).completeExceptionally(e)) {
+                firstFailure.compareAndSet(null, e);
+            }
+        }
     }
 
     private void runTask(TaskSpec spec, ConcurrentExecutionContext context,
@@ -110,8 +117,11 @@ public final class ExecutionEngine {
                 try {
                     Task<?> rawTask = spec.task();
                     output = rawTask.execute(context);
-                } catch (Throwable t) {
-                    error = t;
+                } catch (Exception e) {
+                    error = e;
+                } catch (Error fatal) {
+                    recordFailure(spec, fatal, attempts, attemptStart, results, firstFailure);
+                    return;
                 }
                 if (error == null) {
                     context.put(spec.id(), output);
@@ -125,7 +135,12 @@ public final class ExecutionEngine {
                             attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
                     return;
                 }
-                sleep(policy.delayBeforeJittered(attempts));
+                if (!sleep(policy.delayBeforeJittered(attempts))) {
+                    firstFailure.compareAndSet(null, error);
+                    results.put(spec.id(), new TaskResult(spec.id(), output, error,
+                            attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
+                    return;
+                }
             }
         } catch (Throwable t) {
             escaped = t;
@@ -142,11 +157,21 @@ public final class ExecutionEngine {
         return new TaskResult(id, null, null, 0, Duration.ZERO, TaskStatus.SKIPPED);
     }
 
-    private void sleep(Duration duration) {
+    private static void recordFailure(TaskSpec spec, Throwable error, int attempts,
+                                      Instant attemptStart, Map<String, TaskResult> results,
+                                      AtomicReference<Throwable> firstFailure) {
+        firstFailure.compareAndSet(null, error);
+        results.put(spec.id(), new TaskResult(spec.id(), null, error,
+                attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
+    }
+
+    private boolean sleep(Duration duration) {
         try {
             TimeUnit.MILLISECONDS.sleep(duration.toMillis());
+            return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return false;
         }
     }
 }

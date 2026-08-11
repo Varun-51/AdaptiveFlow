@@ -3,6 +3,25 @@
 All notable changes to AdaptiveFlow are documented here. This project adheres
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-08-11
+
+### Fixed
+
+- Exponential backoff no longer overflows: delays saturate at the cap (or a
+  bounded maximum when uncapped) instead of wrapping negative.
+- A rejecting executor now fails the run fast with `AdaptiveFlowException`
+  instead of hanging on a never-completing gate.
+- Interrupts during backoff abort the task (recorded `FAILED`) instead of
+  spinning the remaining attempts through an immediate-wakeup loop.
+- `Error`-family failures are no longer retried; they fail the task and stop
+  the run.
+- `ExecutionPlan.ids()` now returns the true dependency order computed by
+  Kahn's algorithm instead of hash order.
+- `TaskSpec` moved out of the `internal` package so the public plan API no
+  longer leaks an "internal" type.
+- Empty `parallel()` and blank task ids are rejected at build time.
+- `exponentialBackoff` rejects `maxDelay < initialDelay`.
+
 ## [1.0.0] - 2026-08-10
 
 ### Added

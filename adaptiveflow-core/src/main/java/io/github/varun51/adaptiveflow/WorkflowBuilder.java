@@ -8,7 +8,6 @@ import java.util.concurrent.Executor;
 
 import io.github.varun51.adaptiveflow.engine.ExecutionEngine;
 import io.github.varun51.adaptiveflow.exception.ValidationException;
-import io.github.varun51.adaptiveflow.internal.TaskSpec;
 
 /**
  * Fluent builder. Dependencies are implicit: a new task depends on everything
@@ -48,6 +47,9 @@ public final class WorkflowBuilder {
 
     /** Declares siblings that run concurrently, each depending on the prior frontier. */
     public WorkflowBuilder parallel(TaskRef... tasks) {
+        if (tasks == null || tasks.length == 0) {
+            throw new IllegalArgumentException("parallel() needs at least one task");
+        }
         Set<String> frontier = List.copyOf(lastAdded).isEmpty()
                 ? Set.of()
                 : Set.copyOf(lastAdded);
@@ -104,6 +106,9 @@ public final class WorkflowBuilder {
     }
 
     private void registerTask(TaskSpec spec) {
+        if (spec.id() == null || spec.id().isBlank()) {
+            throw new ValidationException("Task id must not be blank");
+        }
         specs.add(spec);
     }
 
