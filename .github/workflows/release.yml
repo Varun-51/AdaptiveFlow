@@ -19,21 +19,44 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Set up JDK 21 with publish credentials
+      - name: Set up JDK 21
         uses: actions/setup-java@d2bb5a81bf6132351ee9adcc0bba8261a8d34d48
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
-          server-id: central
-          server-username: SONATYPE_TOKEN_USERNAME
-          server-password: SONATYPE_TOKEN_PASSWORD
-          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat > "$HOME/.m2/settings.xml" <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>central</id>
+                <username>${SONATYPE_TOKEN_USERNAME}</username>
+                <password>${SONATYPE_TOKEN_PASSWORD}</password>
+              </server>
+            </servers>
+            <properties>
+              <gpg.passphrase>${GPG_PASSPHRASE}</gpg.passphrase>
+            </properties>
+          </settings>
+          EOF
+        env:
+          SONATYPE_TOKEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          SONATYPE_TOKEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: Import GPG signing key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | base64 --decode > /tmp/af-private.key
+          gpg --batch --import /tmp/af-private.key
+          rm -f /tmp/af-private.key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Deploy to Maven Central
         run: ./mvnw --batch-mode --no-transfer-progress clean deploy -P release
         env:
-          SONATYPE_TOKEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
-          SONATYPE_TOKEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
