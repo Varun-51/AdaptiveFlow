@@ -113,7 +113,7 @@ class ExecutionEngineTest {
     void firstRetryWaitsJitteredWithinInitialDelay() {
         RetryPolicy policy = RetryPolicy.exponentialBackoff(
                 4, Duration.ofMillis(500), Duration.ofSeconds(10));
-        Duration wait = ExecutionEngine.retryDelayAfter(policy, 1);
+        Duration wait = ExecutionEngine.retryDelayAfter(policy, 0);
         assertTrue(wait.toMillis() >= 0 && wait.toMillis() < 500,
                 "first retry must wait inside the initial delay, was " + wait);
     }
