@@ -66,6 +66,20 @@ class WorkflowBuilderTest {
     }
 
     @Test
+    void perMemberRetryPolicyBeatsGroupRetry() {
+        RetryPolicy member = RetryPolicy.fixedDelay(4, Duration.ofMillis(5));
+        RetryPolicy group = RetryPolicy.exponentialBackoff(3, Duration.ofMillis(5));
+        Workflow workflow = WorkflowBuilder.builder("priority")
+                .parallel(
+                        WorkflowBuilder.TaskRef.of("p1", ctx -> 2).retry(member),
+                        WorkflowBuilder.TaskRef.of("p2", ctx -> 3))
+                .retry(group)
+                .build();
+        assertSame(member, workflow.plan().tasks().get("p1").retryPolicy());
+        assertSame(group, workflow.plan().tasks().get("p2").retryPolicy());
+    }
+
+    @Test
     void plannerBuildsExecutablePlanFromWorkflow() {
         Workflow workflow = WorkflowBuilder.builder("plan")
                 .task("a", ctx -> 1)

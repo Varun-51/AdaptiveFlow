@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Immutable outcome of a whole workflow run.
  */
-public class WorkflowResult {
+public final class WorkflowResult {
 
     private final String name;
     private final Map<String, TaskResult> taskResults;

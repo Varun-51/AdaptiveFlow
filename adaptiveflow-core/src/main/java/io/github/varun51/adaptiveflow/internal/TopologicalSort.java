@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import io.github.varun51.adaptiveflow.exception.CycleDetectedException;
 
@@ -54,8 +55,13 @@ public final class TopologicalSort {
         }
 
         if (processed != tasks.size()) {
-            throw new CycleDetectedException("Workflow contains a cycle involving tasks: "
-                    + remainingDependencies);
+            String cycled = remainingDependencies.entrySet().stream()
+                    .filter(entry -> entry.getValue() > 0)
+                    .map(Map.Entry::getKey)
+                    .sorted()
+                    .collect(Collectors.joining(", "));
+            throw new CycleDetectedException(
+                    "Workflow contains a cycle involving tasks: " + cycled);
         }
         return List.copyOf(order);
     }

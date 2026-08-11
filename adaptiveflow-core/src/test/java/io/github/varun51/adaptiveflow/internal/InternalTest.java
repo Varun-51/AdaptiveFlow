@@ -1,6 +1,7 @@
 package io.github.varun51.adaptiveflow.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -91,6 +92,19 @@ class TopologicalSortTest {
         deps.put("b", Set.of("a"));
         assertThrows(CycleDetectedException.class,
                 () -> TopologicalSort.sort(Set.of("a", "b"), deps));
+    }
+
+    @Test
+    void cycleErrorNamesOnlyCycleMembers() {
+        Map<String, Set<String>> deps = new LinkedHashMap<>();
+        deps.put("a", Set.of("b"));
+        deps.put("b", Set.of("a"));
+        deps.put("done", Set.of());
+        CycleDetectedException error = assertThrows(CycleDetectedException.class,
+                () -> TopologicalSort.sort(Set.of("a", "b", "done"), deps));
+        String message = error.getMessage();
+        assertTrue(message.contains("a") && message.contains("b"), message);
+        assertFalse(message.contains("done"), message);
     }
 
     @Test

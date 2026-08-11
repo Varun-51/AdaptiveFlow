@@ -6,7 +6,7 @@ import java.util.Map;
 /**
  * Immutable, validated execution plan with its dependency order frozen.
  */
-public class ExecutionPlan {
+public final class ExecutionPlan {
 
     private final String name;
     private final Map<String, TaskSpec> tasks;

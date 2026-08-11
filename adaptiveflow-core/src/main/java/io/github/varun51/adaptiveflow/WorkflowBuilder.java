@@ -63,14 +63,22 @@ public final class WorkflowBuilder {
         return this;
     }
 
-    /** Attaches a retry policy to the most recently added task or parallel group. */
+    /**
+     * Attaches a retry policy to the most recently added task or parallel
+     * group. Members that already declare their own retry policy keep it;
+     * the group policy applies to everything else.
+     */
     public WorkflowBuilder retry(RetryPolicy policy) {
         if (specs.isEmpty()) {
             throw new IllegalStateException("No task to attach the retry policy to");
         }
         List<TaskSpec> withPolicy = new ArrayList<>(specs.size());
         for (TaskSpec spec : specs) {
-            withPolicy.add(lastAdded.contains(spec.id()) ? spec.withRetryPolicy(policy) : spec);
+            if (lastAdded.contains(spec.id()) && spec.retryPolicy().maxAttempts() == 1) {
+                withPolicy.add(spec.withRetryPolicy(policy));
+            } else {
+                withPolicy.add(spec);
+            }
         }
         specs.clear();
         specs.addAll(withPolicy);
