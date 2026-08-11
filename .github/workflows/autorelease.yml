@@ -12,13 +12,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  bump-and-tag:
+  release:
     if: ${{ !contains(github.event.head_commit.message, '[skip-release]') }}
     runs-on: ubuntu-latest
+    environment: release
+
     steps:
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+
+      - uses: actions/setup-java@d2bb5a81bf6132351ee9adcc0bba8261a8d34d48
         with:
-          fetch-depth: 0
+          distribution: temurin
+          java-version: '21'
 
       - name: Bump patch version, tag, and push
         run: |
@@ -33,4 +38,36 @@ jobs:
           git tag "v$new"
           git push origin main
           git push origin "v$new"
-          echo "Released v$new; publish via the Release workflow on tag push."
+          echo "Bumped to $new"
+
+      - name: Import GPG key
+        run: |
+          echo "$GPG_PRIVATE_KEY" | base64 --decode > /tmp/af-private.key
+          gpg --batch --import /tmp/af-private.key
+          KeyID=$(gpg --batch --list-secret-keys --with-colons | awk -F: '$1=="sec" {print $5}' | head -n1)
+          echo "Imported secret key: ${KeyID}"
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Configure Maven settings
+        run: |
+          mkdir -p "$HOME/.m2"
+          cat > "$HOME/.m2/settings.xml" <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>central</id>
+                <username>${SONATYPE_TOKEN_USERNAME}</username>
+                <password>${SONATYPE_TOKEN_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+        env:
+          SONATYPE_TOKEN_USERNAME: ${{ secrets.SONATYPE_TOKEN_USERNAME }}
+          SONATYPE_TOKEN_PASSWORD: ${{ secrets.SONATYPE_TOKEN_PASSWORD }}
+
+      - name: Deploy to Maven Central
+        run: ./mvnw --batch-mode --no-transfer-progress clean deploy -P release -Dgpg.passphrase="$GPG_PASSPHRASE"
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
