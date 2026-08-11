@@ -21,6 +21,9 @@ public final class TopologicalSort {
     /**
      * Task ids in dependency order (roots first).
      *
+     * @param tasks        ids of every task in the graph
+     * @param dependencyId map of task id to its prerequisite ids
+     * @return task ids in dependency order
      * @throws CycleDetectedException if the graph contains a cycle
      */
     public static List<String> sort(Set<String> tasks,

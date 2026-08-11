@@ -12,7 +12,10 @@ public final class VirtualThreadExecutor {
     private VirtualThreadExecutor() {
     }
 
-    /** @return an executor that spawns one virtual thread per submitted task */
+    /** Creates a fresh executor that spawns one virtual thread per submitted task.
+     *
+     * @return an executor backed by virtual threads
+     */
     public static ExecutorService newVirtualThreadPerTaskExecutor() {
         return Executors.newVirtualThreadPerTaskExecutor();
     }

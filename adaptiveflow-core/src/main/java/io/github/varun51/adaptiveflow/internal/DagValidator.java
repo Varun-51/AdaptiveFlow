@@ -21,6 +21,8 @@ public final class DagValidator {
      * independent roots are allowed on purpose - that is how parallel
      * entry-points are expressed.
      *
+     * @param tasks        all task definitions
+     * @param dependencyId map of task id to its prerequisite ids
      * @throws ValidationException if the graph is malformed
      */
     public static void validate(List<TaskSpec> tasks,

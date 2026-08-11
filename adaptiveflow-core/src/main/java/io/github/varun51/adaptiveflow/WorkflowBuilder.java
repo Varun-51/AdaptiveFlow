@@ -25,7 +25,13 @@ public final class WorkflowBuilder {
         this.name = name;
     }
 
-    /** @throws IllegalArgumentException if name is blank */
+    /**
+     * Starts a new workflow definition.
+     *
+     * @param name name of the workflow
+     * @return a new builder
+     * @throws IllegalArgumentException if name is blank
+     */
     public static WorkflowBuilder builder(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Workflow name must not be blank");
@@ -33,19 +39,34 @@ public final class WorkflowBuilder {
         return new WorkflowBuilder(name);
     }
 
-    /** Adds a task that depends on all previously added tasks. */
+    /** Adds a task that depends on all previously added tasks.
+     *
+     * @param id   unique task id
+     * @param task work to run
+     * @return this builder
+     */
     public WorkflowBuilder task(String id, Task<?> task) {
         registerTask(pendingSpec(id, task, List.copyOf(lastAdded)));
         replaceFrontier(id);
         return this;
     }
 
-    /** Synonym for {@link #task(String, Task)} that reads like a sequence. */
+    /** Synonym for {@link #task(String, Task)} that reads like a sequence.
+     *
+     * @param id   unique task id
+     * @param task work to run
+     * @return this builder
+     */
     public WorkflowBuilder then(String id, Task<?> task) {
         return task(id, task);
     }
 
-    /** Declares siblings that run concurrently, each depending on the prior frontier. */
+    /** Declares siblings that run concurrently, each depending on the prior frontier.
+     *
+     * @param tasks members of the parallel group
+     * @return this builder
+     * @throws IllegalArgumentException if no members are declared
+     */
     public WorkflowBuilder parallel(TaskRef... tasks) {
         if (tasks == null || tasks.length == 0) {
             throw new IllegalArgumentException("parallel() needs at least one task");
@@ -67,6 +88,10 @@ public final class WorkflowBuilder {
      * Attaches a retry policy to the most recently added task or parallel
      * group. Members that already declare their own retry policy keep it;
      * the group policy applies to everything else.
+     *
+     * @param policy retry configuration for the last-added group
+     * @return this builder
+     * @throws IllegalStateException if no task was added yet
      */
     public WorkflowBuilder retry(RetryPolicy policy) {
         if (specs.isEmpty()) {
@@ -85,18 +110,28 @@ public final class WorkflowBuilder {
         return this;
     }
 
-    /** Builds and runs on a fresh virtual-thread executor that is shut down here. */
+    /** Builds and runs on a fresh virtual-thread executor that is shut down here.
+     *
+     * @return the outcome of the whole run
+     */
     public WorkflowResult execute() {
         return new ExecutionEngine().execute(build());
     }
 
-    /** Builds and runs on the given executor; lifecycle stays with the caller. */
+    /** Builds and runs on the given executor; lifecycle stays with the caller.
+     *
+     * @param executor backend used for task execution
+     * @return the outcome of the whole run
+     */
     public WorkflowResult execute(Executor executor) {
         return new ExecutionEngine().run(build(), executor);
     }
 
     /**
      * Validates and freezes the graph: duplicate ids, unknown dependencies, cycles.
+     *
+     * @return the immutable, validated workflow
+     * @throws ValidationException if the definition is structurally invalid
      */
     public Workflow build() {
         if (finished) {
@@ -142,7 +177,12 @@ public final class WorkflowBuilder {
             this.retryPolicy = retryPolicy;
         }
 
-        /** Declares a member for {@link WorkflowBuilder#parallel(TaskRef...)}. */
+        /** Declares a member for {@link WorkflowBuilder#parallel(TaskRef...)}.
+         *
+         * @param id   unique task id
+         * @param task work to run
+         * @return a member declaration without a retry policy
+         */
         public static TaskRef of(String id, Task<?> task) {
             return new TaskRef(id, task, RetryPolicy.none());
         }
@@ -159,7 +199,11 @@ public final class WorkflowBuilder {
             return retryPolicy;
         }
 
-        /** Returns a copy of this declaration with the given policy. */
+        /** Returns a copy of this declaration with the given policy.
+         *
+         * @param policy retry configuration for this member
+         * @return a new member declaration
+         */
         public TaskRef retry(RetryPolicy policy) {
             return new TaskRef(id, task, policy);
         }

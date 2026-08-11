@@ -6,6 +6,10 @@ package io.github.varun51.adaptiveflow.exception;
  */
 public class CycleDetectedException extends ValidationException {
 
+    /** Constructs with a description of the detected cycle.
+     *
+     * @param message details of the detected cycle
+     */
     public CycleDetectedException(String message) {
         super(message);
     }

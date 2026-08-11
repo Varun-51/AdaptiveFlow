@@ -17,6 +17,16 @@ public final class ConcurrentExecutionContext implements ExecutionContext {
 
     private final Map<String, Object> completed = new ConcurrentHashMap<>();
 
+    /** Default constructor; instances are filled by the engine during a run. */
+    public ConcurrentExecutionContext() {
+    }
+
+    /**
+     * Records the output of a finished task.
+     *
+     * @param taskId id of the task
+     * @param value  produced value, possibly {@code null}
+     */
     public void put(String taskId, Object value) {
         completed.put(taskId, value == null ? NULL_MARKER : value);
     }

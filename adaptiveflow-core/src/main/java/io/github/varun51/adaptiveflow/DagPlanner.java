@@ -20,6 +20,8 @@ public final class DagPlanner {
     /**
      * Validates and orders the given specs into an immutable plan.
      *
+     * @param name  name of the workflow
+     * @param specs task definitions to plan
      * @return an immutable, validated execution plan
      */
     public static ExecutionPlan plan(String name, List<TaskSpec> specs) {

@@ -26,7 +26,10 @@ public final class RetryPolicy {
         this.maxDelay = maxDelay;
     }
 
-    /** No retries: a task fails after its first attempt. */
+    /** No retries: a task fails after its first attempt.
+     *
+     * @return a policy that never retries
+     */
     public static RetryPolicy none() {
         return new RetryPolicy(1, Backoff.NONE, Duration.ZERO, Duration.ZERO);
     }
@@ -35,6 +38,8 @@ public final class RetryPolicy {
      * Fixed wait between attempts.
      *
      * @param maxAttempts total attempts including the first (1 = no retry)
+     * @param delay       wait between failures
+     * @return a fixed-delay policy
      */
     public static RetryPolicy fixedDelay(int maxAttempts, Duration delay) {
         Duration d = requireValidDelay(delay);
@@ -44,7 +49,10 @@ public final class RetryPolicy {
     /**
      * Delay doubles after every failure: 1s, 2s, 4s, ... capped at {@code maxDelay}.
      *
-     * @param maxDelay upper bound per attempt, or {@code null} for no cap
+     * @param maxAttempts total attempts including the first (1 = no retry)
+     * @param initialDelay wait before the first retry
+     * @param maxDelay     upper bound per attempt, or {@code null} for no cap
+     * @return an exponential-backoff policy
      */
     public static RetryPolicy exponentialBackoff(int maxAttempts,
                                                  Duration initialDelay,
@@ -57,13 +65,21 @@ public final class RetryPolicy {
         return new RetryPolicy(requireAttempts(maxAttempts), Backoff.EXPONENTIAL, initial, cap);
     }
 
-    /** Same as above without a cap. */
+    /** Same as above without a cap.
+     *
+     * @param maxAttempts  total attempts including the first (1 = no retry)
+     * @param initialDelay wait before the first retry
+     * @return an uncapped exponential-backoff policy
+     */
     public static RetryPolicy exponentialBackoff(int maxAttempts, Duration initialDelay) {
         return exponentialBackoff(maxAttempts, initialDelay, null);
     }
 
     /**
      * Whether a further attempt is allowed after {@code attempted} failures (0-based).
+     *
+     * @param attempted failures already spent
+     * @return whether another attempt may run
      */
     public boolean hasMoreAttemptsAfter(int attempted) {
         return attempted < maxAttempts - 1;
@@ -71,6 +87,9 @@ public final class RetryPolicy {
 
     /**
      * Wait before running the given attempt (0-based).
+     *
+     * @param attempt failures already spent before this wait
+     * @return the delay before that attempt
      */
     public Duration delayBefore(int attempt) {
         return switch (backoff) {
@@ -97,6 +116,9 @@ public final class RetryPolicy {
      * Wait before the given attempt, with full jitter added to exponential
      * backoff so synchronized failures do not thundering-herd the same wait.
      * Fixed and disabled policies keep their exact delay.
+     *
+     * @param attempt failures already spent before this wait
+     * @return the (possibly jittered) delay before that attempt
      */
     public Duration delayBeforeJittered(int attempt) {
         Duration base = delayBefore(attempt);

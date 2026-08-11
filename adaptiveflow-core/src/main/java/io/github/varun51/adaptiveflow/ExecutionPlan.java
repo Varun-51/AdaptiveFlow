@@ -18,15 +18,26 @@ public final class ExecutionPlan {
         this.order = List.copyOf(order);
     }
 
+    /** Name of the workflow.
+     *
+     * @return name of the workflow
+     */
     public String name() {
         return name;
     }
 
+    /** Task definitions keyed by id.
+     *
+     * @return task definitions keyed by id
+     */
     public Map<String, TaskSpec> tasks() {
         return tasks;
     }
 
-    /** Task ids in dependency order (roots first). */
+    /** Task ids in dependency order (roots first).
+     *
+     * @return ids in dependency order
+     */
     public List<String> ids() {
         return order;
     }

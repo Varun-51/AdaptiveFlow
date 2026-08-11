@@ -12,6 +12,12 @@ public final class WorkflowResult {
     private final Map<String, TaskResult> taskResults;
     private final Duration totalDuration;
 
+    /** Creates an immutable snapshot of a finished run.
+     *
+     * @param name          workflow name
+     * @param taskResults   per-task outcomes, keyed by task id
+     * @param totalDuration wall time of the whole run
+     */
     public WorkflowResult(String name, Map<String, TaskResult> taskResults,
                           Duration totalDuration) {
         this.name = name;
@@ -19,11 +25,18 @@ public final class WorkflowResult {
         this.totalDuration = totalDuration;
     }
 
+    /** Workflow name.
+     *
+     * @return workflow name
+     */
     public String name() {
         return name;
     }
 
-    /** True only if every task succeeded. */
+    /** True only if every task succeeded.
+     *
+     * @return whether the run completed without failures
+     */
     public boolean isSuccess() {
         return taskResults.values().stream().allMatch(TaskResult::isSuccess);
     }
@@ -31,6 +44,8 @@ public final class WorkflowResult {
     /**
      * Per-task outcome.
      *
+     * @param taskId id of the task
+     * @return the task's outcome
      * @throws IllegalArgumentException if the id is unknown
      */
     public TaskResult taskResult(String taskId) {
@@ -41,16 +56,29 @@ public final class WorkflowResult {
         return result;
     }
 
-    /** Typed output of a task. Cast is the caller's responsibility. */
+    /** Typed output of a task. Cast is the caller's responsibility.
+     *
+     * @param <T>    expected output type
+     * @param taskId id of the task
+     * @return the task output, possibly {@code null}
+     */
     @SuppressWarnings("unchecked")
     public <T> T result(String taskId) {
         return (T) taskResult(taskId).output();
     }
 
+    /** Immutable per-task outcomes.
+     *
+     * @return immutable per-task outcomes
+     */
     public Map<String, TaskResult> taskResults() {
         return taskResults;
     }
 
+    /** Wall time of the whole run.
+     *
+     * @return wall time of the whole run
+     */
     public Duration totalDuration() {
         return totalDuration;
     }

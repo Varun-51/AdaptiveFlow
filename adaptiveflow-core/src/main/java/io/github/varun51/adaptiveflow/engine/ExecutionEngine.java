@@ -29,12 +29,23 @@ import io.github.varun51.adaptiveflow.exception.AdaptiveFlowException;
  */
 public final class ExecutionEngine {
 
-    /** Fresh per-task virtual-thread executor; caller owns its lifecycle. */
+    /** Default constructor; runs workflows on demand. */
+    public ExecutionEngine() {
+    }
+
+    /** Fresh per-task virtual-thread executor; caller owns its lifecycle.
+     *
+     * @return an executor that spawns one virtual thread per task
+     */
     public static ExecutorService defaultExecutor() {
         return VirtualThreadExecutor.newVirtualThreadPerTaskExecutor();
     }
 
-    /** Runs on a default virtual-thread executor, created and shut down here. */
+    /** Runs on a default virtual-thread executor, created and shut down here.
+     *
+     * @param workflow definition to run
+     * @return the outcome of the whole run
+     */
     public WorkflowResult execute(Workflow workflow) {
         ExecutorService executor = defaultExecutor();
         try {
@@ -44,7 +55,12 @@ public final class ExecutionEngine {
         }
     }
 
-    /** Runs on the given executor; lifecycle stays with the caller. */
+    /** Runs on the given executor; lifecycle stays with the caller.
+     *
+     * @param workflow definition to run
+     * @param executor backend used for task execution
+     * @return the outcome of the whole run
+     */
     public WorkflowResult run(Workflow workflow, Executor executor) {
         Map<String, TaskSpec> tasks = workflow.plan().tasks();
         ConcurrentExecutionContext context = new ConcurrentExecutionContext();
