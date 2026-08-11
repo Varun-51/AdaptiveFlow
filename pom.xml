@@ -21,6 +21,14 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Varun-51</name>
+            <email>nakarvarun77@gmail.com</email>
+            <url>https://github.com/Varun-51</url>
+        </developer>
+    </developers>
+
     <organization>
         <name>Varun-51</name>
         <url>https://github.com/Varun-51</url>
