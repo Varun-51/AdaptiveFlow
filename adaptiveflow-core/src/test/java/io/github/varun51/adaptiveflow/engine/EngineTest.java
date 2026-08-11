@@ -11,6 +11,7 @@ import io.github.varun51.adaptiveflow.Workflow;
 import io.github.varun51.adaptiveflow.WorkflowBuilder;
 import io.github.varun51.adaptiveflow.WorkflowResult;
 import io.github.varun51.adaptiveflow.exception.AdaptiveFlowException;
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -106,5 +107,32 @@ class ExecutionEngineTest {
                 () -> new ExecutionEngine().run(workflow, command -> {
                     throw new RejectedExecutionException("executor is shut down");
                 }));
+    }
+
+    @Test
+    void firstRetryWaitsJitteredWithinInitialDelay() {
+        RetryPolicy policy = RetryPolicy.exponentialBackoff(
+                4, Duration.ofMillis(500), Duration.ofSeconds(10));
+        Duration wait = ExecutionEngine.retryDelayAfter(policy, 1);
+        assertTrue(wait.toMillis() >= 0 && wait.toMillis() < 500,
+                "first retry must wait inside the initial delay, was " + wait);
+    }
+
+    @Test
+    void retryActuallySleepsBetweenAttempts() {
+        AtomicInteger attempts = new AtomicInteger();
+        long start = System.nanoTime();
+        WorkflowResult result = WorkflowBuilder.builder("timed-retry")
+                .task("a", ctx -> {
+                    if (attempts.incrementAndGet() == 1) {
+                        throw new IllegalStateException("first fails");
+                    }
+                    return "ok";
+                })
+                .retry(RetryPolicy.fixedDelay(3, Duration.ofMillis(200)))
+                .execute();
+        long elapsedMs = Duration.ofNanos(System.nanoTime() - start).toMillis();
+        assertTrue(result.isSuccess());
+        assertTrue(elapsedMs >= 180, "expected a ~200ms backoff wait, took " + elapsedMs + "ms");
     }
 }

@@ -111,6 +111,7 @@ public final class ExecutionEngine {
             int attempts = 0;
             while (true) {
                 attempts++;
+                int failuresSpent = attempts - 1;
                 Instant attemptStart = Instant.now();
                 Throwable error = null;
                 Object output = null;
@@ -129,13 +130,13 @@ public final class ExecutionEngine {
                             attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.COMPLETED));
                     return;
                 }
-                if (!policy.hasMoreAttemptsAfter(attempts - 1)) {
+                if (!policy.hasMoreAttemptsAfter(failuresSpent)) {
                     firstFailure.compareAndSet(null, error);
                     results.put(spec.id(), new TaskResult(spec.id(), output, error,
                             attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
                     return;
                 }
-                if (!sleep(policy.delayBeforeJittered(attempts))) {
+                if (!sleep(retryDelayAfter(policy, failuresSpent))) {
                     firstFailure.compareAndSet(null, error);
                     results.put(spec.id(), new TaskResult(spec.id(), output, error,
                             attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
@@ -151,6 +152,10 @@ public final class ExecutionEngine {
                 gates.get(spec.id()).complete(null);
             }
         }
+    }
+
+    static Duration retryDelayAfter(RetryPolicy policy, int failuresSpent) {
+        return policy.delayBeforeJittered(failuresSpent);
     }
 
     private static TaskResult skipped(String id) {
