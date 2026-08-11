@@ -32,7 +32,7 @@ jobs:
           sed -i "0,/<version>$old<\/version>/s//<version>$new<\/version>/" pom.xml
           sed -i "0,/<version>$old<\/version>/s//<version>$new<\/version>/" adaptiveflow-core/pom.xml
           git config user.name "AdaptiveFlow Release Bot"
-          git config user.email "Varun-51@users.noreply.github.com"
+          git config user.email "171715285+Varun-51@users.noreply.github.com"
           git add pom.xml adaptiveflow-core/pom.xml
           git commit -m "Bump version to $new [skip-release]"
           git tag "v$new"
