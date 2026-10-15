@@ -99,8 +99,8 @@ public final class ExecutionEngine {
             return;
         }
         if (firstFailure.get() != null) {
-            gates.get(spec.id()).complete(null);
             results.put(spec.id(), skipped(spec.id()));
+            gates.get(spec.id()).complete(null);
             return;
         }
         try {
