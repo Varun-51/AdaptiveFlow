@@ -122,7 +122,7 @@ public final class RetryPolicy {
      */
     public Duration delayBeforeJittered(int attempt) {
         Duration base = delayBefore(attempt);
-        if (backoff != Backoff.EXPONENTIAL || base.isZero()) {
+        if (backoff != Backoff.EXPONENTIAL || base.toMillis() <= 0) {
             return base;
         }
         return Duration.ofMillis(ThreadLocalRandom.current().nextLong(base.toMillis()));
