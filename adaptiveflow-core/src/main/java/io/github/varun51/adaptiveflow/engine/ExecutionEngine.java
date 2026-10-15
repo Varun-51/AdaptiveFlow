@@ -77,8 +77,14 @@ public final class ExecutionEngine {
                     .map(gates::get)
                     .toList();
             CompletableFuture.allOf(dependencies.toArray(new CompletableFuture[0]))
-                    .whenComplete((ignored, error) -> schedule(spec, executor, context,
-                            results, gates, firstFailure));
+                    .whenComplete((ignored, error) -> {
+                        if (error != null) {
+                            gates.get(spec.id()).complete(null);
+                            results.put(spec.id(), skipped(spec.id()));
+                            return;
+                        }
+                        schedule(spec, executor, context, results, gates, firstFailure);
+                    });
         }
 
         try {
@@ -153,8 +159,9 @@ public final class ExecutionEngine {
                     return;
                 }
                 if (!sleep(retryDelayAfter(policy, failuresSpent))) {
-                    firstFailure.compareAndSet(null, error);
-                    results.put(spec.id(), new TaskResult(spec.id(), output, error,
+                    InterruptedException ie = new InterruptedException("Retry sleep interrupted");
+                    firstFailure.compareAndSet(null, ie);
+                    results.put(spec.id(), new TaskResult(spec.id(), output, ie,
                             attempts, Duration.between(attemptStart, Instant.now()), TaskStatus.FAILED));
                     return;
                 }
